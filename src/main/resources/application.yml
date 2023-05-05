@@ -1,0 +1,47 @@
+server:
+  port: 8081
+
+
+spring:
+  cloud:
+    stream:
+#      function:
+#        bindings:
+#          orderChannel-in-0: orderChannel #3.2.8에서는 그냥 없애버려야 한다.
+      bindings:
+        orderChannel-in-0:
+          destination: orders-exchange
+          group: orders-exchange-group
+          binder: rabbit
+        orderChannel-out-0:
+          destination: processing-exchange
+          binder: rabbit
+      rabbit:
+        bindings:
+          orderChannel-in-0:
+            consumer:
+              bindingRoutingKey: 'order1,order2'
+              bindingRoutingKeyDelimiter: ','
+              exchangeType: topic
+              durableSubscription: true
+              autoBindDlq: true
+          orderChannel-out-0:
+            producer:
+              exchangeType: topic
+              routingKeyExpression: headers['routingKey']
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: user
+    password: password
+  application:
+    name: microservice-a
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8762/eureka
+
+#logging:
+#  level:
+#    org.springframework.amqp: DEBUG
